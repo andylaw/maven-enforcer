@@ -1,0 +1,174 @@
+~~ Licensed to the Apache Software Foundation (ASF) under one
+~~ or more contributor license agreements.  See the NOTICE file
+~~ distributed with this work for additional information
+~~ regarding copyright ownership.  The ASF licenses this file
+~~ to you under the Apache License, Version 2.0 (the
+~~ "License"); you may not use this file except in compliance
+~~ with the License.  You may obtain a copy of the License at
+~~
+~~ http://www.apache.org/licenses/LICENSE-2.0
+~~
+~~ Unless required by applicable law or agreed to in writing,
+~~ software distributed under the License is distributed on an
+~~ "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+~~ KIND, either express or implied.  See the License for the
+~~ specific language governing permissions and limitations
+~~ under the License.    
+ 
+  ------
+  Mutually Exclusive Profiles
+  ------
+  Andy Law
+  ------
+  2024-12-02
+  ------
+
+Mutually Exclusive Profiles
+
+  This rule checks that mutually exclusive profiles are not active at the same time. More than one set of
+  profiles can be defined and each set is treated separately. Each set can additionally be configured to
+  require one member to be active. The default setting is that zero or one member of a given set may be active
+  in order for the rule to allow the phase to continue.
+
+
+   The following parameters are supported by this rule:
+   
+   * <<profilesRuleList>> - a list of sets of profiles, each of which is considered separately.
+  The <<profilesRuleList>> tag contains one or more <<profilesRule>> tags:
+
+     * <<profilesRule>> - a single set of mutually exclusive profiles
+   
+     * <<profilesString>> - A comma separated list of the names of profiles.
+   
+     * <<requireOne>> - An optional boolean value to indicate whether this rule requires one of the listed
+          profiles to be active. Default is false
+       (i.e. having none of the profiles listed being active is acceptable).
+   
+   []
+
+   
+  Sample Plugin Configuration 1:
+
+      This will fail the build if both profile-1 and profile-2 are active. If only one, or neither of them
+      is active then the build will continue.
+
++---+
+<project>
+  [...]
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-enforcer-plugin</artifactId>
+        <version>${project.version}</version>
+        <executions>
+          <execution>
+            <id>check-for-active-mutually-exclusive-profiles</id>
+            <goals>
+              <goal>enforce</goal>
+            </goals>
+            <configuration>
+              <rules>
+                <mutuallyExclusiveProfiles>
+                  <profilesRuleList>
+                    <profilesRule>
+                      <profilesString>profile-1,profile-2</profilesString>
+                    </profilesRule>
+                  </profilesRuleList>
+                </mutuallyExclusiveProfiles>
+              </rules>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+  [...]
+</project>
+
++---+
+
+      Sample Plugin Configuration 2:
+
+      This will fail the build if both profile-1 and profile-2 are active, or if both are inactive. Only if one of
+      the two specified profiles is active will the build continue.
+
++---+
+<project>
+  [...]
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-enforcer-plugin</artifactId>
+        <version>${project.version}</version>
+        <executions>
+          <execution>
+            <id>require-one-from-mutually-exclusive-profiles</id>
+            <goals>
+              <goal>enforce</goal>
+            </goals>
+            <configuration>
+              <rules>
+                <mutuallyExclusiveProfiles>
+                  <profilesRuleList>
+                    <profilesRule>
+                      <profilesString>profile-1,profile-2</profilesString>
+                      <requireOne>true</requireOne>
+                    </profilesRule>
+                  </profilesRuleList>
+                </mutuallyExclusiveProfiles>
+              </rules>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+  [...]
+</project>
++---+
+
+      Sample Plugin Configuration 3:
+
+      This configuration requires one or none of [profile-1, profile-2] and exactly one of [a, b, c, d] to be active.
+
++---+
+<project>
+  [...]
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-enforcer-plugin</artifactId>
+        <version>${project.version}</version>
+        <executions>
+          <execution>
+            <id>check-multiple-mutually-exclusive-profile-sets</id>
+            <goals>
+              <goal>enforce</goal>
+            </goals>
+            <configuration>
+              <rules>
+                <mutuallyExclusiveProfiles>
+                  <profilesRuleList>
+                    <profilesRule>
+                      <profilesString>profile-1,profile-2</profilesString>
+                    </profilesRule>
+                    <profilesRule>
+                      <profilesString>a,b,c,d</profilesString>
+                      <requireOne>true</requireOne>
+                    </profilesRule>
+                  </profilesRuleList>
+                </mutuallyExclusiveProfiles>
+              </rules>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+  [...]
+</project>
+
++---+
